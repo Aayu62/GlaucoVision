@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CA-Net | Cascaded Attention AI for Multistage Glaucoma Classification</title>
+  <meta name="description" content="AI diagnostic platform reproducing CA-Net (IEEE TIM 2023) for multistage glaucoma detection in retinal fundus photography with Grad-CAM++ explainability.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <!-- Top Navigation -->
+  <header class="top-nav">
+    <div class="nav-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 3v18"/>
+            <path d="M3 12h18"/>
+            <circle cx="12" cy="12" r="4" fill="currentColor" fill-opacity="0.3"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">GlaucoVision <span class="badge-tag">CA-NET</span></span>
+          <span class="brand-sub">IEEE TIM 2023 Implementation</span>
+        </div>
+      </div>
+
+      <div class="nav-status">
+        <div class="status-indicator">
+          <span class="status-dot"></span>
+          <span class="status-text" id="statusModelText">DenseNet-121 + CAM Engine</span>
+        </div>
+        <button class="btn-ghost" id="btnOpenArchModal">Architecture Specs</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-layout">
+    
+    <!-- Hero Banner -->
+    <section class="hero-section">
+      <div class="hero-badge">
+        <span class="pulse-icon"></span> Cascaded Attention Module (TCAB + SAB) Active
+      </div>
+      <h1 class="hero-title">Multistage Glaucoma Classification & Visual Explainability</h1>
+      <p class="hero-desc">
+        Deep retinal analysis capturing cross-dimensional feature dependencies along channel, channel-width, channel-height, and spatial dimensions to detect early and advanced glaucomatous neuropathy.
+      </p>
+    </section>
+
+    <!-- Main Workspace Grid -->
+    <div class="workspace-grid">
+      
+      <!-- Left Column: Upload & Controls -->
+      <section class="glass-card upload-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="card-title">Retinal Fundus Image</h2>
+              <p class="card-subtitle">Upload optic nerve head photography</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Drop Zone -->
+        <div class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" accept="image/*" hidden>
+          <div class="drop-zone-content" id="dropZonePrompt">
+            <div class="upload-illustration">
+              <div class="scan-ring"></div>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14h-2v-4H8l4-5 4 5h-3z"/>
+              </svg>
+            </div>
+            <p class="drop-text-primary">Drag & drop fundus photo here</p>
+            <p class="drop-text-secondary">or <span class="browse-link">browse from local disk</span></p>
+            <span class="format-tag">Supports PNG, JPG, BMP (Auto-resized to 224×224)</span>
+          </div>
+
+          <!-- Uploaded Preview -->
+          <div class="preview-container" id="previewContainer" style="display: none;">
+            <img id="imagePreview" src="" alt="Fundus Preview">
+            <button class="btn-clear" id="btnClearImage" title="Remove image">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Preset Test Samples -->
+        <div class="samples-section">
+          <span class="samples-label">Or test with benchmark dataset cases:</span>
+          <div class="samples-buttons" id="samplesContainer">
+            <button class="sample-btn" data-stage="Normal">
+              <span class="sample-chip chip-normal"></span> Normal Control
+            </button>
+            <button class="sample-btn" data-stage="Early-stage">
+              <span class="sample-chip chip-early"></span> Early Glaucoma
+            </button>
+            <button class="sample-btn" data-stage="Advanced-stage">
+              <span class="sample-chip chip-adv"></span> Advanced Glaucoma
+            </button>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <button class="btn-primary" id="btnAnalyze" disabled>
+          <span class="btn-text">Run CA-Net Analysis</span>
+          <span class="spinner" id="analyzeSpinner" style="display: none;"></span>
+        </button>
+
+        <!-- Learnable TCAB Weights Monitor -->
+        <div class="tcab-weights-box">
+          <div class="tcab-box-title">
+            <span>Learnable Triplet Attention Weights</span>
+            <span class="tcab-formula">F_ch = w₁F₁ + w₂F₂ + w₃F₃</span>
+          </div>
+          <div class="tcab-bars">
+            <div class="tcab-weight-item">
+              <div class="tcab-label"><span>w₁ (1D Channel)</span><span id="valW1">0.33</span></div>
+              <div class="tcab-track"><div class="tcab-fill" id="barW1" style="width: 33%;"></div></div>
+            </div>
+            <div class="tcab-weight-item">
+              <div class="tcab-label"><span>w₂ (Channel-Width)</span><span id="valW2">0.33</span></div>
+              <div class="tcab-track"><div class="tcab-fill" id="barW2" style="width: 33%;"></div></div>
+            </div>
+            <div class="tcab-weight-item">
+              <div class="tcab-label"><span>w₃ (Channel-Height)</span><span id="valW3">0.33</span></div>
+              <div class="tcab-track"><div class="tcab-fill" id="barW3" style="width: 33%;"></div></div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Right Column: Diagnostic Results & Explainability -->
+      <section class="glass-card results-card" id="resultsSection">
+        
+        <!-- Placeholder State -->
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4"/>
+              <path d="M12 8h.01"/>
+            </svg>
+          </div>
+          <h3 class="empty-title">Awaiting Fundus Examination</h3>
+          <p class="empty-desc">Upload a retinal image or select a benchmark case above, then press <strong>Run CA-Net Analysis</strong> to view real-time stage classification and Grad-CAM++ heatmaps.</p>
+        </div>
+
+        <!-- Active Results State -->
+        <div class="results-active" id="activeResults" style="display: none;">
+          
+          <!-- Verdict Card -->
+          <div class="verdict-banner" id="verdictBanner">
+            <div class="verdict-header">
+              <div class="verdict-stage-badge" id="verdictBadge">Normal</div>
+              <div class="verdict-confidence">
+                <span class="conf-value" id="verdictConfidence">98.4%</span>
+                <span class="conf-label">Confidence</span>
+              </div>
+            </div>
+            <p class="verdict-description" id="verdictDesc">
+              Clinical diagnostic interpretation will appear here.
+            </p>
+            <div class="inference-meta">
+              <span id="inferenceLatency">Latency: 42ms</span>
+              <span>Input: 224×224 RGB</span>
+              <span>Backbone: DenseNet-121</span>
+            </div>
+          </div>
+
+          <!-- Stage Probabilities Distribution -->
+          <div class="probabilities-panel">
+            <h4 class="panel-heading">Multistage Probability Distribution</h4>
+            <div class="prob-rows">
+              
+              <div class="prob-row">
+                <div class="prob-header">
+                  <span class="prob-name">Normal Control</span>
+                  <span class="prob-pct" id="pctNormal">0.0%</span>
+                </div>
+                <div class="prob-track">
+                  <div class="prob-fill fill-normal" id="fillNormal" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <div class="prob-row">
+                <div class="prob-header">
+                  <span class="prob-name">Early-Stage Glaucoma</span>
+                  <span class="prob-pct" id="pctEarly">0.0%</span>
+                </div>
+                <div class="prob-track">
+                  <div class="prob-fill fill-early" id="fillEarly" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <div class="prob-row">
+                <div class="prob-header">
+                  <span class="prob-name">Advanced-Stage Glaucoma</span>
+                  <span class="prob-pct" id="pctAdv">0.0%</span>
+                </div>
+                <div class="prob-track">
+                  <div class="prob-fill fill-adv" id="fillAdv" style="width: 0%;"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Explainability Heatmap Visualizer -->
+          <div class="explainability-panel">
+            <div class="explain-header">
+              <div>
+                <h4 class="panel-heading">Visual Explainability (CAM Lesion Attention)</h4>
+                <p class="panel-sub">Localization maps generated from CA-Net cascaded attention feature maps</p>
+              </div>
+
+              <!-- View Selector Tabs -->
+              <div class="view-tabs">
+                <button class="tab-btn active" data-view="gcampp">Grad-CAM++ (Paper)</button>
+                <button class="tab-btn" data-view="gcam">Grad-CAM</button>
+                <button class="tab-btn" data-view="compare">Side-by-Side</button>
+                <button class="tab-btn" data-view="original">Original</button>
+              </div>
+            </div>
+
+            <!-- Heatmap Viewports -->
+            <div class="viewport-wrapper">
+              
+              <!-- Single Viewport -->
+              <div class="single-viewport" id="singleViewport">
+                <div class="image-stage">
+                  <img id="mainDisplayImg" src="" alt="Explainability View">
+                  <div class="viewport-label" id="viewportLabel">Grad-CAM++ Overlay</div>
+                </div>
+              </div>
+
+              <!-- Side-by-Side Viewport -->
+              <div class="compare-viewport" id="compareViewport" style="display: none;">
+                <div class="compare-col">
+                  <div class="image-stage">
+                    <img id="compareOrigImg" src="" alt="Original">
+                    <div class="viewport-label">Original Fundus</div>
+                  </div>
+                </div>
+                <div class="compare-col">
+                  <div class="image-stage">
+                    <img id="compareGcamppImg" src="" alt="Grad-CAM++">
+                    <div class="viewport-label">Grad-CAM++ (CA-Net)</div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Opacity Slider -->
+            <div class="slider-control" id="sliderGroup">
+              <span class="slider-label">Heatmap Overlay Intensity:</span>
+              <input type="range" id="opacitySlider" min="0" max="100" value="70">
+              <span class="slider-val" id="opacityValue">70%</span>
+            </div>
+
+            <!-- Explainability Insight Note -->
+            <div class="insight-callout">
+              <div class="insight-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <p class="insight-text">
+                <strong>Attention Focus:</strong> Notice how Grad-CAM++ concentrates heat on the <em>neuroretinal rim</em> and <em>optic cup margins</em>, highlighting subtle excavation patterns while suppressing background retinal vessels.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+    <!-- Clinical Safety Disclaimer -->
+    <footer class="disclaimer-banner">
+      <div class="disclaimer-content">
+        <div class="disclaimer-badge">Clinical Research Prototype</div>
+        <p class="disclaimer-text">
+          <strong>Medical Notice:</strong> This software is an implementation of academic research (Das et al., IEEE TIM 2023) developed strictly for investigative and educational purposes. Predictions are computer-generated approximations and must not replace professional ophthalmic consultation or certified clinical diagnosis.
+        </p>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- Architecture Modal -->
+  <div class="modal-overlay" id="archModal" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">CA-Net Architectural Blueprint</h3>
+        <button class="modal-close" id="btnCloseArchModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="arch-flow">
+          <div class="arch-step">
+            <span class="step-num">1</span>
+            <div>
+              <strong>Backbone: DenseNet-121</strong>
+              <p>Extracts deep hierarchical features F_in ∈ ℝ^(7×7×1024) from retinal images resized to 224×224.</p>
+            </div>
+          </div>
+          <div class="arch-step">
+            <span class="step-num">2</span>
+            <div>
+              <strong>Triplet Channel Attention Block (TCAB)</strong>
+              <p>Simultaneously captures 1D Channel weights, 2D Channel-Width cross-attention (CHAP over H), and 2D Channel-Height cross-attention (CWAP over W) merged via learnable scalar weights: F_ch = w₁F₁ + w₂F₂ + w₃F₃.</p>
+            </div>
+          </div>
+          <div class="arch-step">
+            <span class="step-num">3</span>
+            <div>
+              <strong>Spatial Attention Block (SAB)</strong>
+              <p>Performs Cross-Channel Average Pooling (CCAP) over K channels followed by 1×1 Conv, LayerNorm, and Sigmoid to highlight lesion regions: F_sp = σ(Conv(V)) ⊗ F_ch.</p>
+            </div>
+          </div>
+          <div class="arch-step">
+            <span class="step-num">4</span>
+            <div>
+              <strong>Classifier Head & Explainability</strong>
+              <p>GAP layer followed by 3-neuron FC layer with Softmax for Normal, Early, and Advanced stages. Interpreted via Grad-CAM and Grad-CAM++.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
