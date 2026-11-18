@@ -4,6 +4,14 @@ Hugging Face Spaces Native Gradio Application (100% Free Tier Supported)
 Paper: IEEE Transactions on Instrumentation and Measurement, Vol. 72, 2023
 """
 
+# 1. Hugging Face ZeroGPU requires importing spaces before any other CUDA package
+try:
+    import spaces
+    gpu_decorator = spaces.GPU
+except ImportError:
+    def gpu_decorator(fn):
+        return fn
+
 import os
 import numpy as np
 from PIL import Image
@@ -26,13 +34,12 @@ CLASS_DESCRIPTIONS = {
     "Advanced-stage": "**Advanced-Stage Glaucoma**: Severe optic nerve head excavation, significant neuroretinal rim thinning, and extensive retinal nerve fiber layer defect patterns."
 }
 
-# Load Model
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = CANet(backbone="densenet121", attention="cam", pretrained=True).to(device)
+# 2. Initialize model on CPU on startup (ZeroGPU will move to CUDA inside the function)
+model = CANet(backbone="densenet121", attention="cam", pretrained=True)
 
 if os.path.exists(CHECKPOINT_PATH):
     print(f"Loading trained weights from {CHECKPOINT_PATH}...")
-    ckpt = torch.load(CHECKPOINT_PATH, map_location=device)
+    ckpt = torch.load(CHECKPOINT_PATH, map_location="cpu")
     model.load_state_dict(ckpt["model_state_dict"])
 else:
     print("Warning: Trained weights checkpoint not found. Operating with pretrained ImageNet weights.")
@@ -41,18 +48,14 @@ model.eval()
 explainer = CAMExplainer(model)
 transform = get_transforms(is_train=False, img_size=224)
 
-# ZeroGPU Safe Wrapper for Hugging Face Spaces
-try:
-    import spaces
-    gpu_decorator = spaces.GPU
-except ImportError:
-    def gpu_decorator(fn):
-        return fn
-
 @gpu_decorator
 def diagnose_fundus(input_image):
     if input_image is None:
         return None, None, None, "Please upload or select an eye fundus image."
+
+    # Determine execution device dynamically (CUDA on ZeroGPU, CPU otherwise)
+    curr_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(curr_device)
 
     # Convert to PIL RGB
     if isinstance(input_image, np.ndarray):
@@ -61,7 +64,7 @@ def diagnose_fundus(input_image):
         pil_img = input_image.convert("RGB")
 
     orig_resized = np.array(pil_img.resize((224, 224)))
-    input_tensor = transform(pil_img).unsqueeze(0).to(device)
+    input_tensor = transform(pil_img).unsqueeze(0).to(curr_device)
 
     # 1. Forward Inference
     with torch.no_grad():
@@ -174,4 +177,3 @@ with gr.Blocks(title="GlaucoVision: CA-Net Glaucoma Diagnosis") as demo:
 
 if __name__ == "__main__":
     demo.launch(css=custom_css)
-
