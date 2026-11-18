@@ -1,3 +1,15 @@
+---
+title: GlaucoVision
+emoji: 👁️
+colorFrom: indigo
+colorTo: cyan
+sdk: gradio
+app_file: app.py
+pinned: false
+license: apache-2.0
+short_description: Multistage Glaucoma Classification & Grad-CAM++ Explainability
+---
+
 # GlaucoVision: CA-Net for Multistage Glaucoma Classification
 
 An end-to-end implementation and web detection platform reproducing the research paper:
