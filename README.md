@@ -12,10 +12,18 @@ short_description: Multistage Glaucoma Classification with Grad-CAM++
 
 # GlaucoVision: CA-Net for Multistage Glaucoma Classification
 
+[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces%20(ZeroGPU)-blue)](https://huggingface.co/spaces/Aayu62/GlaucoVision)
+[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-181717?logo=github)](https://github.com/Aayu62/GlaucoVision)
+[![Report PDF](https://img.shields.io/badge/Academic%20Report-PDF-red)](GlaucoVision_Report.pdf)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
+
 An end-to-end implementation and web detection platform reproducing the research paper:
 > **CA-Net: A Novel Cascaded Attention-Based Network for Multistage Glaucoma Classification Using Fundus Images**  
 > *Dipankar Das, Deepak Ranjan Nayak, and Ram Bilas Pachori*  
 > **IEEE Transactions on Instrumentation and Measurement**, Vol. 72, 2023.
+
+🔗 **Live Public Demo**: [huggingface.co/spaces/Aayu62/GlaucoVision](https://huggingface.co/spaces/Aayu62/GlaucoVision)  
+📄 **Academic Project Report**: [GlaucoVision_Report.pdf](GlaucoVision_Report.pdf)
 
 ---
 
@@ -46,7 +54,7 @@ An end-to-end implementation and web detection platform reproducing the research
 ## 📂 Repository Structure
 
 ```
-c:/Users/KIIT0001/GlaucoVision/
+GlaucoVision/
 ├── dataset/
 │   ├── prepare_lmg.py          # Assembles LMG & Harvard splits (70:30 train/test, 70:30 train/val)
 │   └── dataset.py              # PyTorch Dataset with on-the-fly augmentations (flips, rotations, scaling)
