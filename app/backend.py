@@ -175,22 +175,36 @@ async def explain_prediction(file: UploadFile = File(...), target_class: Optiona
 async def get_sample_images():
     """
     Returns base64 data URLs for 3 representative sample images (Normal, Early, Advanced)
-    from the downloaded datasets so users can immediately test without uploading.
+    for one-click testing. Works in local environments and deployed cloud containers.
     """
     samples = {
-        "Normal": "c:/Users/KIIT0001/GlaucoVision/processed_data(Harvard)/normal_control/1.png",
-        "Early-stage": "c:/Users/KIIT0001/GlaucoVision/processed_data(Harvard)/early_glaucoma/1.png",
-        "Advanced-stage": "c:/Users/KIIT0001/GlaucoVision/processed_data(Harvard)/advanced_glaucoma/1.png"
+        "Normal": [
+            os.path.join(STATIC_DIR, "samples", "normal_sample.png"),
+            "c:/Users/KIIT0001/GlaucoVision/processed_data(Harvard)/normal_control/1.png"
+        ],
+        "Early-stage": [
+            os.path.join(STATIC_DIR, "samples", "early_sample.png"),
+            "c:/Users/KIIT0001/GlaucoVision/processed_data(Harvard)/early_glaucoma/1.png"
+        ],
+        "Advanced-stage": [
+            os.path.join(STATIC_DIR, "samples", "advanced_sample.png"),
+            "c:/Users/KIIT0001/GlaucoVision/processed_data(Harvard)/advanced_glaucoma/1.png"
+        ]
     }
     
     result = []
-    for stage, p in samples.items():
-        if os.path.exists(p):
-            im = Image.open(p).convert("RGB").resize((224, 224))
-            result.append({
-                "stage": stage,
-                "data_url": pil_to_base64_data_url(im)
-            })
+    for stage, paths in samples.items():
+        for p in paths:
+            if os.path.exists(p):
+                try:
+                    im = Image.open(p).convert("RGB").resize((224, 224))
+                    result.append({
+                        "stage": stage,
+                        "data_url": pil_to_base64_data_url(im)
+                    })
+                    break
+                except Exception:
+                    continue
     return result
 
 # Serve static frontend files
@@ -206,4 +220,6 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend:app", host="127.0.0.1", port=8000, reload=True)
+    port = int(os.getenv("PORT", 8000))
+    host = os.getenv("HOST", "0.0.0.0")
+    uvicorn.run("backend:app", host=host, port=port, reload=True)
