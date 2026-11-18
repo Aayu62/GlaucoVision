@@ -41,6 +41,15 @@ model.eval()
 explainer = CAMExplainer(model)
 transform = get_transforms(is_train=False, img_size=224)
 
+# ZeroGPU Safe Wrapper for Hugging Face Spaces
+try:
+    import spaces
+    gpu_decorator = spaces.GPU
+except ImportError:
+    def gpu_decorator(fn):
+        return fn
+
+@gpu_decorator
 def diagnose_fundus(input_image):
     if input_image is None:
         return None, None, None, "Please upload or select an eye fundus image."
