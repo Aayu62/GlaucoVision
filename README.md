@@ -2,12 +2,12 @@
 title: GlaucoVision
 emoji: 👁️
 colorFrom: indigo
-colorTo: cyan
+colorTo: blue
 sdk: gradio
 app_file: app.py
 pinned: false
 license: apache-2.0
-short_description: Multistage Glaucoma Classification & Grad-CAM++ Explainability
+short_description: Multistage Glaucoma Classification with Grad-CAM++
 ---
 
 # GlaucoVision: CA-Net for Multistage Glaucoma Classification
