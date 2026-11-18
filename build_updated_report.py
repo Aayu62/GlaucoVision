@@ -424,8 +424,9 @@ def build_pdf(filename="GlaucoVision_Report_Updated.pdf"):
     ))
 
     # Figure 1: Architecture
-    if os.path.exists("extracted_img_p3_1.png"):
-        img1 = Image("extracted_img_p3_1.png", width=440, height=192)
+    fig1_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "figure1_architecture.png")
+    if os.path.exists(fig1_path):
+        img1 = Image(fig1_path, width=440, height=192)
         img1.hAlign = 'CENTER'
         story.append(img1)
         story.append(Paragraph("Fig. 1. CA-Net: DenseNet-121 backbone, Cascaded Attention Module (TCAB then SAB) and classifier head.", caption_style))
@@ -706,8 +707,9 @@ def build_pdf(filename="GlaucoVision_Report_Updated.pdf"):
     story.append(Spacer(1, 4))
 
     # Figure 2: Confusion Matrix
-    if os.path.exists("extracted_img_p6_1.png"):
-        img2 = Image("extracted_img_p6_1.png", width=220, height=193)
+    fig2_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "figure2_confusion_matrix.png")
+    if os.path.exists(fig2_path):
+        img2 = Image(fig2_path, width=220, height=193)
         img2.hAlign = 'CENTER'
         story.append(img2)
         story.append(Paragraph("Fig. 2. Confusion matrix of CA-Net on the 475 test images (rows: actual, columns: predicted).", caption_style))
@@ -847,13 +849,5 @@ def build_pdf(filename="GlaucoVision_Report_Updated.pdf"):
     print(f"Built PDF successfully: {filename}")
 
 if __name__ == "__main__":
-    import shutil
-    orig_path = "GlaucoVision_Report.pdf"
-    backup_path = "GlaucoVision_Report_Original.pdf"
-    if os.path.exists(orig_path) and not os.path.exists(backup_path):
-        shutil.copyfile(orig_path, backup_path)
-        print(f"Backed up original report to {backup_path}")
-
-    build_pdf("GlaucoVision_Report_Updated.pdf")
     build_pdf("GlaucoVision_Report.pdf")
-    print("Both GlaucoVision_Report_Updated.pdf and GlaucoVision_Report.pdf are updated!")
+    print("GlaucoVision_Report.pdf generated and updated successfully!")
