@@ -203,7 +203,10 @@ def main():
 
     # Evaluate best model on Test Set
     print("\n=== Evaluating Best Checkpoint on Unseen Test Set ===")
-    checkpoint = torch.load(best_model_path, map_location=device)
+    try:
+        checkpoint = torch.load(best_model_path, map_location=device, weights_only=False)
+    except TypeError:
+        checkpoint = torch.load(best_model_path, map_location=device)
     model.load_state_dict(checkpoint["model_state_dict"])
     test_metrics = evaluate(model, test_loader, criterion, device)
     print(f"Test Set Results -> Acc: {test_metrics['accuracy']*100:.2f}%, "

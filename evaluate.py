@@ -31,7 +31,10 @@ def evaluate_and_plot(model_path,
     os.makedirs(output_dir, exist_ok=True)
     device = torch.device(device if device else ("cuda" if torch.cuda.is_available() else "cpu"))
 
-    checkpoint = torch.load(model_path, map_location=device)
+    try:
+        checkpoint = torch.load(model_path, map_location=device, weights_only=False)
+    except TypeError:
+        checkpoint = torch.load(model_path, map_location=device)
     config = checkpoint.get("config", {})
     backbone = config.get("backbone", "densenet121")
     attention = config.get("attention", "cam")

@@ -63,7 +63,10 @@ def load_or_init_model():
     
     if os.path.exists(best_weights_path):
         print(f"Loading trained weights from {best_weights_path}...")
-        ckpt = torch.load(best_weights_path, map_location=device)
+        try:
+            ckpt = torch.load(best_weights_path, map_location=device, weights_only=False)
+        except TypeError:
+            ckpt = torch.load(best_weights_path, map_location=device)
         model.load_state_dict(ckpt["model_state_dict"])
     else:
         print("Trained weights checkpoint not found yet. Operating in feature-inference demo mode with ImageNet pretrained DenseNet-121 backbone.")

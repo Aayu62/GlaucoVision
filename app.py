@@ -39,7 +39,10 @@ model = CANet(backbone="densenet121", attention="cam", pretrained=True)
 
 if os.path.exists(CHECKPOINT_PATH):
     print(f"Loading trained weights from {CHECKPOINT_PATH}...")
-    ckpt = torch.load(CHECKPOINT_PATH, map_location="cpu")
+    try:
+        ckpt = torch.load(CHECKPOINT_PATH, map_location="cpu", weights_only=False)
+    except TypeError:
+        ckpt = torch.load(CHECKPOINT_PATH, map_location="cpu")
     model.load_state_dict(ckpt["model_state_dict"])
 else:
     print("Warning: Trained weights checkpoint not found. Operating with pretrained ImageNet weights.")
